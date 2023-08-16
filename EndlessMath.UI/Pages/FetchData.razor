@@ -1,57 +1,43 @@
 ﻿@page "/fetchdata"
 @inject HttpClient Http
 
-<PageTitle>Weather forecast</PageTitle>
+<PageTitle>Get A Problem</PageTitle>
 
-<h1>Weather forecast</h1>
+<h1>Solve This...</h1>
 
 <p>This component demonstrates fetching data from the server.</p>
 
-@if (forecasts == null)
+@if (string.IsNullOrEmpty(problem))
 {
     <p><em>Loading...</em></p>
 }
 else
 {
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Temp. (C)</th>
-                <th>Temp. (F)</th>
-                <th>Summary</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var forecast in forecasts)
-            {
-                <tr>
-                    <td>@forecast.Date.ToShortDateString()</td>
-                    <td>@forecast.TemperatureC</td>
-                    <td>@forecast.TemperatureF</td>
-                    <td>@forecast.Summary</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <p>@problem</p>
 }
 
 @code {
-    private WeatherForecast[]? forecasts;
+    private string? problem;
 
     protected override async Task OnInitializedAsync()
     {
-        forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("sample-data/weather.json");
+        var response = await Http.GetFromJsonAsync<GenAiResponse>("api/Converstaion?operationType=0");
+        problem = response.ListOfEquations.FirstOrDefault();
     }
 
-    public class WeatherForecast
+    public class GenAiResponse
     {
-        public DateOnly Date { get; set; }
-
-        public int TemperatureC { get; set; }
-
-        public string? Summary { get; set; }
-
-        public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+        public List<string> ListOfEquations { get; set; } = new List<string>();
+        public OperationType OperationType { get; set; }
     }
+
+    public enum OperationType
+    {
+        Addition = 0,
+        Subtraction = 1,
+        Division = 2,
+        Multiplication = 3
+    }
+
+
 }
